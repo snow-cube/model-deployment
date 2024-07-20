@@ -1,27 +1,33 @@
-from typing import Union
+# from typing import Optional
+# from sympy import content
+# import uvicorn
 
-from fastapi import FastAPI
-from pydantic import BaseModel
+from fastapi import FastAPI, File, UploadFile
+# from io import BytesIO
+# from ml.predict import load_model,Features,predict
 
+#创建FastAPI实例
 app = FastAPI()
 
-
-class Item(BaseModel):
-    name: str
-    price: float
-    is_offer: Union[bool, None] = None
-
-
-@app.get("/")
+#创建访问路径
+@app.get('/')
 def read_root():
-    return {"Hello": "World"}
+    return {'message': 'Hello World'}
 
+# # 加载模型
+# models = load_model()
+# def test(file):
+# 	feature = Features(file)
+# 	return model.predict(feature)
 
-@app.get("/items/{item_id}")
-def read_item(item_id: int, q: Union[str, None] = None):
-    return {"item_id": item_id, "q": q}
-
-
-@app.put("/items/{item_id}")
-def update_item(item_id: int, item: Item):
-    return {"item_name": item.name, "item_id": item_id}
+#调用模型接口
+@app.post('/detect/v2')
+async def detect2(file: UploadFile):
+    f = file.file
+    # content = await file.read()
+    # res = test(content)
+    return {
+        'filename': file.filename,
+        'attributes': str(type(f))
+        # 'result': res
+    }
