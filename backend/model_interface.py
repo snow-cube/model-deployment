@@ -19,7 +19,7 @@ np.random.seed(2024)
 
 # data_root = "/Share8/zy/med_sam/data/base_test/combined"
 # pred_save_dir = "./preds/base_test"
-lite_medsam_checkpoint_path = "./work_dir/LiteMedSAM/lite_medsam.pth"
+lite_medsam_checkpoint_path = "/home/sc/Documents/works/med_sam_cl/MedSAM-CL/work_dir/LiteMedSAM/lite_medsam.pth"
 num_workers = 1
 save_overlay = True
 # if save_overlay:
@@ -27,7 +27,7 @@ save_overlay = True
     # os.makedirs(png_save_dir, exist_ok=True)
 
 # os.makedirs(pred_save_dir, exist_ok=True)
-device = torch.device("cuda:5")
+device = torch.device("cuda:0")
 image_size = 256
 
 
@@ -499,5 +499,6 @@ def inference(data: bytes, file_name: str, save_dir: str):
 
 
 if __name__ == '__main__':
-    abc = 0
-    inference(abc, 'test.npz', '')
+    npz_file_dir = '/home/sc/Documents/works/med_sam_cl/MedSAM-CL/test_demo/test_demo/imgs/2DBox_Dermoscopy_demo.npz'
+    with open(npz_file_dir, 'rb') as f:
+        inference(f, 'output.npz', './')
