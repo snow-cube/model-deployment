@@ -1,19 +1,31 @@
-from fastapi import FastAPI, File, UploadFile
+from fastapi import FastAPI, File, Form, UploadFile
 from fastapi.responses import FileResponse
 import model_interface
 import os
-
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
 
+origins = [
+    "http://localhost",
+    "http://localhost:5173",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.get('/')
 async def root():
     return {'message': "Hello World"}
 
 
-@app.post('/uploadfile')
-async def upload_input_file(file: UploadFile):
+@app.post('/upload')
+async def upload_input_file(file: UploadFile, token: str = Form()):
     input_file_name = 'test.npz'
     base_save_dir = './'
     input_file_path = os.path.join(base_save_dir, input_file_name)
@@ -28,10 +40,10 @@ async def upload_input_file(file: UploadFile):
     }
 
 
-@app.get("/downloadfile/{file_name}")
-async def download_output_file(file_name: str):
+@app.get("/download")
+async def download_output_file(filename: str):
     base_download_dir = './'
-    output_path = os.path.join(base_download_dir, file_name)
+    output_path = os.path.join(base_download_dir, filename)
 
     if not os.path.exists(output_path):
         return {
@@ -39,4 +51,4 @@ async def download_output_file(file_name: str):
             'error': "File doesn't exists"
         }
 
-    return FileResponse(path=output_path, filename=file_name)
+    return FileResponse(path=output_path, filename=filename)
