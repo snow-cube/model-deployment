@@ -17,16 +17,9 @@ torch.cuda.manual_seed(2024)
 np.random.seed(2024)
 
 
-# data_root = "/Share8/zy/med_sam/data/base_test/combined"
-# pred_save_dir = "./preds/base_test"
-lite_medsam_checkpoint_path = "/home/sc/Documents/works/med_sam_cl/MedSAM-CL/work_dir/LiteMedSAM/lite_medsam.pth"
+lite_medsam_checkpoint_path = "../../MedSAM-CL/work_dir/LiteMedSAM/lite_medsam.pth"
 num_workers = 1
 save_overlay = True
-# if save_overlay:
-    # png_save_dir="./preds/base_test_overlay"
-    # os.makedirs(png_save_dir, exist_ok=True)
-
-# os.makedirs(pred_save_dir, exist_ok=True)
 device = torch.device("cuda:0")
 image_size = 256
 
@@ -314,11 +307,9 @@ medsam_lite_model.load_state_dict(lite_medsam_checkpoint)
 medsam_lite_model.to(device)
 medsam_lite_model.eval()
 
-def MedSAM_infer_npz_2D(file_data, npz_name, save_dir):
-    # npz_name = os.path.basename(file_data)
-    pred_save_dir = save_dir
-    png_save_dir = save_dir
-    npz_data = np.load(file_data, 'r', allow_pickle=True) # (H, W, 3)
+def MedSAM_infer_npz_2D(img_npz_file, pred_save_dir, png_save_dir):
+    npz_name = os.path.basename(img_npz_file)
+    npz_data = np.load(img_npz_file, 'r', allow_pickle=True) # (H, W, 3)
     img_3c = npz_data['imgs'] # (H, W, 3)
     assert np.max(img_3c)<256, f'input data should be in range [0, 255], but got {np.unique(img_3c)}'
     H, W = img_3c.shape[:2]
@@ -369,11 +360,9 @@ def MedSAM_infer_npz_2D(file_data, npz_name, save_dir):
         plt.close()
 
 
-def MedSAM_infer_npz_3D(file_data, npz_name, save_dir):
-    # npz_name = os.path.basename(file_data)
-    pred_save_dir = save_dir
-    png_save_dir = save_dir
-    npz_data = np.load(file_data, 'r', allow_pickle=True)
+def MedSAM_infer_npz_3D(img_npz_file, pred_save_dir, png_save_dir):
+    npz_name = os.path.basename(img_npz_file)
+    npz_data = np.load(img_npz_file, 'r', allow_pickle=True)
     img_3D = npz_data['imgs'] # (D, H, W)
     spacing = npz_data['spacing'] # not used in this demo because it treats each slice independently
     segs = np.zeros_like(img_3D, dtype=np.uint8)
@@ -488,17 +477,17 @@ def MedSAM_infer_npz_3D(file_data, npz_name, save_dir):
         plt.close()
 
 
-def inference(data: bytes, file_name: str, save_dir: str):
+def inference(img_npz_file: str, pred_save_dir: str, png_save_dir: str):
+    file_name = os.path.basename(img_npz_file)
     start_time = time()
     if file_name.startswith('3D'):
-        MedSAM_infer_npz_3D(data, file_name, save_dir)
+        MedSAM_infer_npz_3D(img_npz_file, pred_save_dir, png_save_dir)
     else:
-        MedSAM_infer_npz_2D(data, file_name, save_dir)
+        MedSAM_infer_npz_2D(img_npz_file, pred_save_dir, png_save_dir)
     end_time = time()
     efficiency = end_time - start_time
 
 
 if __name__ == '__main__':
-    npz_file_dir = '/home/sc/Documents/works/med_sam_cl/MedSAM-CL/test_demo/test_demo/imgs/2DBox_Dermoscopy_demo.npz'
-    with open(npz_file_dir, 'rb') as f:
-        inference(f, 'output.npz', './')
+    npz_file_dir = '../../MedSAM-CL/test_demo/imgs/2DBox_Dermoscopy_demo.npz'
+    inference(npz_file_dir, './', './')

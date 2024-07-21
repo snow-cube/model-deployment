@@ -1,33 +1,42 @@
-# from typing import Optional
-# from sympy import content
-# import uvicorn
-
 from fastapi import FastAPI, File, UploadFile
-# from io import BytesIO
-# from ml.predict import load_model,Features,predict
+from fastapi.responses import FileResponse
+import model_interface
+import os
 
-#创建FastAPI实例
+
 app = FastAPI()
 
-#创建访问路径
+
 @app.get('/')
-def read_root():
-    return {'message': 'Hello World'}
+async def root():
+    return {'message': "Hello World"}
 
-# # 加载模型
-# models = load_model()
-# def test(file):
-# 	feature = Features(file)
-# 	return model.predict(feature)
 
-#调用模型接口
-@app.post('/detect/v2')
-async def detect2(file: UploadFile):
-    f = file.file
-    # content = await file.read()
-    # res = test(content)
+@app.post('/uploadfile')
+async def upload_input_file(file: UploadFile):
+    input_file_name = 'test.npz'
+    base_save_dir = './'
+    input_file_path = os.path.join(base_save_dir, input_file_name)
+    save_dir = './'
+
+    content = await file.read()
+    with open(input_file_path, 'wb') as f:
+        f.write(content)
+    model_interface.inference(input_file_path, save_dir, save_dir)
     return {
-        'filename': file.filename,
-        'attributes': str(type(f))
-        # 'result': res
+        'filename': input_file_name
     }
+
+
+@app.get("/downloadfile/{file_name}")
+async def download_output_file(file_name: str):
+    base_download_dir = './'
+    output_path = os.path.join(base_download_dir, file_name)
+
+    if not os.path.exists(output_path):
+        return {
+            'code': 0,
+            'error': "File doesn't exists"
+        }
+
+    return FileResponse(path=output_path, filename=file_name)
