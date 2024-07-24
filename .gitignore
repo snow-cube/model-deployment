@@ -2,3 +2,6 @@
 .vscode/
 
 backend/__pycache__/
+
+backend/input/
+backend/output/
